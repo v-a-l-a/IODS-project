@@ -1,0 +1,3 @@
+*In this course we complete exercises every week and save them on our course diary webpages.*
+
+My course diary can be found [here](https://v-a-l-a.github.io/IODS-project/)
