@@ -1,0 +1,165 @@
+# Exercises for week 3
+
+## The student alcohol consumption dataset
+First I name my dataset studnt_alc and read it to R from my local folder.
+```{r student_alc}
+student_alc <- read.table("/Users/Noora/Documents/IODS-project/data/create_alc.txt", header = TRUE)
+```
+
+The names of the variables in the dataset are:
+```{r column names}
+colnames(student_alc)
+```
+
+The dataset contains information about student alcohol use in Portugal. The original dataset that is available from [here](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION) has been modified so that two separate datasets have been joined. These joined dataset has information about each student (e.g. age, gender, mother's job, whether they have internet access or not), about their alcohol consumption (e.g. workday & weekend alcohol consumption), as well as about their school performance on mathematics and Portuguese. The variables shown above give a fuller picture of all the 35 variables in the dataset. The dataset has 382 observations.
+
+## Choosing four variables to study
+I will next study the relationships between high/low alcohol consumption and the following four variables: studytime, age, failures, and romantic.
+Here are my personal hypotheses about how each variable is related to alcohol consumption:
+
++ **studytime**: students with high alcohol consumption spend less time studying (negatively related to high use)
++ **age**: students of different ages have similar alcohol consumption rates (no relationship)
++ **failures**: students with high alcohol consumption have more failures (positively related to high use)
++ **romantic**: students with a romantic relationship have high alcohol consumption, single students have lower consumption
+
+## Exploring the variables
+I will next look at the distributions of the variables by printing out summaries of them:
+```{r summaries}
+summary(student_alc$studytime)
+summary(student_alc$age)
+summary(student_alc$failures)
+summary(student_alc$romantic)
+summary(student_alc$high_use)
+```
+
+Study time describes the student's weekly study time on a scale of 1 to 4 (1 = <2h, 2 = 2-5h, 3 = 5-10h, 4 = >10h). The mean score for study time in the dataset is 2.037, so the averag student studies between 2 and 5 hours per week. There are some who study less than 2h and some more than 10h (min is 1 and max is 4).
+
+The age distribution in the dataset is between 15 and 22 with on average th students being 17. Most students have no past failures, with the median of failures being 0 and mean being 0.2016. The maximum number of failures is 3. Most students are not in a romantic relationship (261 out of 382, i.e. almost 70%).
+
+Additionally, I explored the amount of students belonging to high_use group. The majority of students (n = 268) don't consume alcohol a lot, but a large minority (n = 114) do.
+
+Let's next investigate some plots about the variables.
+
+**Study time**
+```{r plot study time}
+library(ggplot2)
+ba1 <- ggplot(student_alc, aes(x = studytime, col = high_use))
+ba1 + geom_bar(position = "dodge") + ggtitle("Study time")
+bo1 <- ggplot(student_alc, aes(x = high_use, y = studytime, col = high_use))
+bo1 + geom_boxplot() + ggtitle("Study time")
+```
+
+It is clear from the bar plot that although approximately the same number of students without high use have study time 1 and 3, for those with high use, the number of students with study time 1 is much greater than those with 3. Also, there are over two times more students without high use whose study time is 2 than there are those with study time 1. For students with high use, the difference is much smaller. Thus it could be assumed that my hypothesis that students with high alcohol consumption spend less time studying than those without high use seems to be supported. The box plot also supports this view.
+
+**Age**
+```{r plots age}
+ba2 <- ggplot(student_alc, aes(x = age, col = high_use))
+ba2 + geom_bar(position = "dodge") + ggtitle("Age")
+bo2 <- ggplot(student_alc, aes(x = high_use, y = age, col = high_use))
+bo2 + geom_boxplot() + ggtitle("Age")
+```
+
+The bar and box plots suggest that there might be some differences in students' alcohol consumption depending on their age. Relatively small percentage of students aged 15 have high use of alcohol, but as the students get older, the percentage of students of same age who have high use seems to increase. Thus my hypothesis that students of different ages have similar alcohol consumption rates might be incorrect.
+
+**Failures**
+```{r plots failures}
+ba3 <- ggplot(student_alc, aes(x = failures, col = high_use))
+ba3 + geom_bar(position = "dodge") + ggtitle("Failures")
+bo3 <- ggplot(student_alc, aes(x = high_use, y = failures, col = high_use))
+bo3 + geom_boxplot() + ggtitle("Failures")
+```
+
+From the bar plot I see that there are about the same number of students with and without high use who have 1, 2 and 3 failures. This is interesting because there are far more students without high use than there are with high use. This would suggest the percentage of students with high use who have failures is higher than that of those without high use. This would suggest that my hypothesis that students with high alcohol consumption have more failures is correct. However, it is also clear from both of the plots that the number of students with failures is in both cases (with and without high use) quite small compared to the number of students without failures.
+
+**Romantic**
+```{r plots romantic}
+ba4 <- ggplot(student_alc, aes(x = romantic, col = high_use))
+ba4 + geom_bar(position = "dodge") + ggtitle("Romantic")
+```
+
+From the bar plot I see that most students don't have a romantic relationship. Those without high use seem a bit more likely to have a relationship than those with high use, but the difference is quite small. Thus my hypothesis that students with a romantic relationship have high alcohol consumption, single students have lower consumption is not supported by this plot.
+
+Next I still look at some cross tabulations of the variables. I use the library knitr to present the results of the code as nicer looking tables (the knitr::kable part of my code does this).
+
+```{r cross tabulation}
+library(dplyr)
+library(knitr)
+crosstab1 <- student_alc %>% group_by(high_use, romantic) %>% summarise(count = n())
+crosstab2 <- student_alc %>% group_by(high_use) %>% summarise(mean_studytime = mean(studytime), mean_age = mean(age),mean_failures = mean(failures))
+knitr::kable(crosstab1)
+knitr::kable(crosstab2)
+```
+
+From the first cross-tabulation with high use and romantic variables, I see that 88 out of the 268 students without high use of alcohol have a relationship (i.e. 33%), and 33 out of the 114 with high use have a romantic relationship (i.e. 29 %). This again just shows that my hypothesis is likely to be wrong about romantic relationships and alcohol consumption.
+
+From the second cross-tabulation I see that the average study time for those without high use is indeed greater than for those with high use (although the difference is not very large), supporting my earlier discussion about study time. The average age of students with and without high use seems quite similar, which might indicate that my hypothesis about age not being related to alcohol consumption might be actually true. For failures, the difference between the means is small, but it might still be possible my hypothesis is correct.
+
+So far I have mixed results with my hypotheses and will conduct more analysis.
+
+## Logistic regression
+
+First I fit a logistic regression model with high use as the target variable and study time, age, failures and romantic as the predictors. I create a summary of the fittd model:
+```{r logistic model}
+mymodel <-glm(high_use ~ studytime + age + failures + romantic, family = "binomial", data = student_alc)
+summary(mymodel)
+```
+
+From the summary I see that study time is negatively related to high use (coefficient -0.55), and both age and failures are positively related (coefficients 0.20 and 0.31 respectively). Romantic relationships seem to be negatively related to high use (-0.21).
+
+When looking at the p-values, study time is statistically significant (with p-value much below 0.05), meaning that it's coefficient is not 0 (it is related to high use). For age, the p-value is 0.051, so it is difficult to say if it is or isn't statistically significant. Failures has p-value of 0.11, and thus could probably be removed from the model (th null hypothesis of the test that failures' coefficient is 0 seems valid). For romantic relationships, the p-value is 0.40 suggesting that it isn't statistically significant and can be removed from the model. I will not remove any varibles yet.
+
+I will also look at the coefficients of my model (as odds ratios) and their confidence intervals.
+```{r coefficients}
+odds_r <- coef(mymodel) %>% exp
+conf_int <- confint(mymodel) %>% exp
+cbind(odds_r, conf_int)
+```
+
+From the odds ratios and their 95% confidence intervals I can see that two confidence intervals contain 1: those of failures and romantic. This means that the odds of success with X (e.g. romantic relationship) are the same as odds of success without it. This suggest that these two variables are not related to high use (their presence doesn't change the odds of having high use). This again confirms my earlier suggestions that these two variables can be removed from the model.
+
+Study time, on the other hand, doesn't contain the value 1 in its confidence interval. Thus it seems that study time does have a relationship with high use and should be kept in the model. The odds ratio for study time is less than 1, suggesting that study tim is negatively associated with high use, as also found earlier.
+
+Age, again, is more complex to interpret. Its confidence interval comes very close to 1 (1.0004), so it is again difficult to say that it does or doesn't clearly have a relationship with high use. It seems that age is positively related with high use, as also mentioned before, but that the effect is fairly weak (odds ratio is 1.22 so close to 1). I will keep age in my model for now as the evidence against keeping it is not very strong.
+
+When comparing these results to my hypotheses, it seems that only my hypothesis about **study time** is supported by the model (study time is negatively related to high use). My hypothesis about **age** (no relationship) might or might not be correct - it seems there is a weak relationship. My hypotheses about **failures and romantic** seem both incorrect as my model suggests no relationship between either of these variables and high use.
+
+## The predictive power of my model
+
+So, now I change my model to only include study time and age as the predictors.
+```{r logistic model2}
+mymodel2 <-glm(high_use ~ studytime + age, family = "binomial", data = student_alc)
+```
+
+I will look at my model's predictions and the actual values of my data next.
+```{r predictions}
+probabilities <- predict(mymodel2, type = "response")
+student_alc <- mutate(student_alc, probability = probabilities)
+student_alc <- mutate(student_alc, prediction = probabilities > 0.5)
+table(high_use = student_alc$high_use, prediction = student_alc$prediction)
+```
+
+Here is a graphic visualising the actual values and the predictions:
+```{r predictions graphical}
+g <- ggplot(student_alc, aes(x = probability, y = high_use, col=prediction))
+g + geom_point()
+```
+
+The total proportion of inaccurately classified individuals is calculated with a loss function:
+```{r loss}
+loss_funct <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+loss_funct(class = student_alc$high_use, prob = student_alc$probability)
+```
+
+It seems that the proportion of inaccurately classified individuals is 0.29 (29%). The smaller this number is the better the model is at predictions, so my model seems ok but there is room for improvement as nearly a third of individuals are classified in a wrong way. My model seems to mainly inaccurately classify those with high use to not have high use. Out of the 114 with high use, my model classifies only 12 to have high use. However, out of the 268 who don't have high use, my model correctly classifies 259 individuals.
+
+The performance of my model should still be better than the performance of a simple guessing strategy. For example, let's say I guess that all individuals with little time spent studying (study time 1 or 2) have high use of alcohol, and all those with much time spent studying (study time 3 or 4) don't have high use. I use the xtabs function to get a table showing the number of students with high use or without high use with differnt study times. I again use the knitr library to present the table in a nicer format.
+
+```{r guessing}
+guess <- xtabs(~ high_use + studytime, student_alc)
+knitr::kable(guess)
+```
+
+I see that for there are 58 + 135 = 193 students whose study time is 1 or 2 but who don't have high use of alcohol. There are also 8 + 4 = 12 students with study time 3 or 4 who have high use of alcohol. Thus my guess would have been incorrect in 193 + 12 = 205 out of 382 cases, so in 54% of cases. Thus my model is far more accurate than my simple guessing strategy.
