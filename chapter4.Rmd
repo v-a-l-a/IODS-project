@@ -15,7 +15,7 @@ The Boston dataset has 506 observations and 14 variables. The dataset relates to
 ## Overview of the data
 
 Here is a graphical overview of the data.
-``` {r graphical overview}
+``` {r graphical overview 1}
 library(GGally)
 library(ggplot2)
 GraphicalOverview <- ggpairs(Boston, mapping = aes(), title = "Graphical Overview", lower = list(combo = wrap("facethist", bins = 20)))
@@ -31,7 +31,7 @@ corrplot(cor_matrix, method = "circle", type = "upper", cl.pos = "r", tl.pos = "
 
 
 Here are summaries of the variables. The package knitr is used to present the results in a nicer table format (the knitr::kable part of the code).
-``` {r summaries}
+``` {r summaries 1}
 library(knitr)
 knitr::kable(summary(Boston))
 ```
@@ -87,7 +87,7 @@ lda.pred <- predict(lda.fit, newdata = test)
 table(correct = correct_classes, predicted = lda.pred$class)
 ```
 
-From my predictions 13 + 17 + 18 + 24 = 72 were correct and 11 + 1 + 7 + 3 + 8 = 30 were incorrect, thus my LDA predictions were correct 71% of the time (or incorrect 29% of time). All the predictions for high were correct - everything that really belonged to the high class was predicted to be high, and everything predicted to be high really belongd to the high class. The other classes, on the other hand, were more problematic. E.g. out of the 25 really belonging to the class low, the LDA predicted 11 to be medium, and 1 to be medium high, correctly classifying only 13 to be low.
+From my LDA predictions were correct about 70 or 75% of the time (depending on which obsrvations were used as parts of the train and test sets as these change every time I refresh the document). The LDA predictions for high seem to be mostly correct, but the model has some problems predicting the other classes correctly.
 
 ## The distances between the observations
 
