@@ -1,0 +1,123 @@
+# Exercises for week 4
+
+## The Boston dataset
+
+I load the Boston data and explore its structure and dimensions.
+```{r Boston}
+library(MASS)
+data("Boston")
+str(Boston)
+dim(Boston)
+```
+
+The Boston dataset has 506 observations and 14 variables. The dataset relates to housing valus in Boston's suburbs. The variables include for example crim (per capita crime rate by town), dis (weighted mean of distances to five Boston employment centres) and ptratio (pupil-teacher ratio by town).
+
+## Overview of the data
+
+Here is a graphical overview of the data.
+``` {r graphical overview}
+library(GGally)
+library(ggplot2)
+GraphicalOverview <- ggpairs(Boston, mapping = aes(), title = "Graphical Overview", lower = list(combo = wrap("facethist", bins = 20)))
+GraphicalOverview
+```
+
+Here is also a correlation plot of the variables:
+``` {r correlation plot}
+library(corrplot)
+cor_matrix <- cor(Boston)
+corrplot(cor_matrix, method = "circle", type = "upper", cl.pos = "r", tl.pos = "d")
+```
+
+
+Here are summaries of the variables. The package knitr is used to present the results in a nicer table format (the knitr::kable part of the code).
+``` {r summaries}
+library(knitr)
+knitr::kable(summary(Boston))
+```
+
+The variables are quite interesting. For example per capita crime rate by town (crim) seems to be quite low in most cases (3rd quartile is 3.68), but the maximum value for crime rate is 88.98, suggesting that some areas are highly different from the more typical areas when it comes to crime rates.  For pupil-teacher ratio by town (ptratio), the 1st quartile value is 17.40 and 3rd is 20.20, meaning that 50% of areas have between 17.4 and 20.2 pupils per teacher. However, even with this variable, the difference between min (12.60) and max (22.00) is significant, with in some areas one teacher having one average 10 pupils more than in other areas. Also the proportion of owner-occupied units built prior to 1940 (age) seems to have a large range (min 2.90, max 100.00). There is also a ten-fold difference between the min and max (median) values of homes. The average number of rooms per dwelling (rm) seems to be the only variable that is somewhat normally distributed.
+
+The scatter plots in the graphical overview can give some indication about the relationships between the variables. For example, when looking at home values (medv), the highest home values seem to be in the areas with the lowest lstat (lower status of the population %) values, whereas the high lstat areas have only low home values. The correlation plot also confirms that there is strong (negative) correlation between home values and lstat. The correlation plot also suggests that there is a correlation between the number of rooms per dwelling (rm) and home values. The same is indicated by the scatter plots - the more rooms the dwelling has, the higher the home value, and vice versa. On the other hand, there is no clear relationship between for example proportion of residential land zoned for lots over 25,000 sq.ft (zn) and home value, as high home values seem to correspond to both high and low values of zn. The correlation plot also shows no strong correlation between these two variables.
+
+## Standardising the dataset
+
+Next I will scale the dataset and look at a summary of the scaled data (using again knitr to present the summary as a nice table). I also convert the scaled dataset (sBoston) to a data frame format, which will be needed later on.
+```{r Boston scaled}
+sBoston <- scale(Boston)
+knitr::kable(summary(sBoston))
+sBoston <- as.data.frame(sBoston)
+```
+
+The values of the variables changed so that now the mean value of very variable is 0, and the other values have been scaled with the formula (x - mean(x)) / sd(x). This means that the min and 1st quartile values are below 0 and 3rd quartile and max above 0. The scales of the variables are also closer to each other now.
+
+Next I create a categorical variable 'crime' about (scaled) crime rate. The 'crime' variable will have 4 level: low, med_low, med_high and high. I also drop the old crime rate variable from my scaled Boston dataset (sBoston) and add the new catgorical crime rate to it.
+```{r categorical crime}
+scaled_crim <- sBoston$crim
+bins <- quantile(scaled_crim)
+crime <- cut(scaled_crim, breaks = bins, include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
+sBoston <- dplyr::select(sBoston, -crim)
+sBoston <- data.frame(sBoston, crime)
+```
+
+Next I will divide the scaled dataset to train and test sets, with 80% of the data being in th train set.
+```{r train and test}
+n <- nrow(sBoston)
+ind <- sample(n, size = n*0.8)
+train <- sBoston[ind,]
+test <- sBoston[-ind,]
+```
+
+## Linear discriminant analysis
+
+Next I will fit the linear discriminant analysis on the train set by using the catgorical crime rate as the target variable and the other variables as predictor variables. I will also draw the LDA (bi)plot but not show the LDA arrows in the biplot.
+```{r LDA}
+lda.fit <- lda(crime ~ ., data = train)
+classes <- as.numeric(train$crime)
+plot(lda.fit, dimen = 2, col = classes, pch = classes)
+```
+
+## Predicting the classes
+
+I will next save the correct classes (categories) for crime rate in the test set and then remove the categorical crime rate variable from the test set for testing purposes. After this I will predict the crime classes with my LDA model on the test data and look at whether the predictions were correct. 
+```{r predict}
+correct_classes <- test$crime
+test <- dplyr::select(test, -crime)
+lda.pred <- predict(lda.fit, newdata = test)
+table(correct = correct_classes, predicted = lda.pred$class)
+```
+
+From my predictions 13 + 17 + 18 + 24 = 72 were correct and 11 + 1 + 7 + 3 + 8 = 30 were incorrect, thus my LDA predictions were correct 71% of the time (or incorrect 29% of time). All the predictions for high were correct - everything that really belonged to the high class was predicted to be high, and everything predicted to be high really belongd to the high class. The other classes, on the other hand, were more problematic. E.g. out of the 25 really belonging to the class low, the LDA predicted 11 to be medium, and 1 to be medium high, correctly classifying only 13 to be low.
+
+## The distances between the observations
+
+Next I will reload the Boston dataset and scale it again (and call it sBoston 2 now). I will also calculate the distances between the observations using Euclidean distance measure.
+```{r Boston scaled 2}
+data("Boston")
+sBoston2 <- scale(Boston)
+sBoston2 <- as.data.frame(sBoston2)
+dist_eu <- dist(sBoston2)
+summary(dist_eu)
+```
+
+Next I will use the K-means clustering method on the dataset. I don't yet know the optimal number of clusters so I use 5 for this run of the algorithm.
+```{r K-means 5}
+km <- kmeans(dist_eu, centers = 5)
+pairs(sBoston2, col = km$cluster, lower.panel = NULL)
+```
+
+However, I want to determine the optimal number of clusters.
+```{r cluster number}
+set.seed(123)
+k_max <- 10
+twcss <- sapply(1:k_max, function(k){kmeans(dist_eu, k)$tot.withinss})
+plot(1:k_max, twcss, type = 'b')
+```
+
+From this I see that the optimal number of clusters seems to be 2 as this is where the largest drop in the WCSS is. Now I do the k-means clustering and visualise the results with a plot.
+```{r K-means}
+km <- kmeans(dist_eu, centers = 2)
+pairs(sBoston2, col = km$cluster, lower.panel = NULL)
+```
+
+In this visualisation all the data points are assigned to two different clusters (the red and black clusters). It seems that some variables are more relevant for clustering than others. For example points with low rad (index of accessibility to radial highways) values in general belong to the red cluster, and points with high rad values belong to the black cluster. Thus rad seems useful for clustering purposes. Another relevant variable is e.g. tax (full-value property-tax rate). However, for example the values of the variable chas don't seem to give any indication about which cluster the points belong to, and thus chas is not very relevant for clustering. Thus this visualisation is helpful in showing whether the variables or variable pairs are good indicators about which cluster a specific data point belongs to.
