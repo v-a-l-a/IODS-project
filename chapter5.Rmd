@@ -101,7 +101,7 @@ I will next visualise these variables from the dataset.
 library(tidyr)
 library(dplyr)
 keep_columns <- c("frequency", "Tea", "sugar", "tea.time", "sex")
-te1 <- select(tea, one_of(keep_columns))
+te1 <- dplyr::select(tea, one_of(keep_columns))
 gather(te1) %>% ggplot(aes(value)) + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) + facet_wrap("key", scales = "free")
 ```
 
