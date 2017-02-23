@@ -1,5 +1,6 @@
 # Name: Noora Sheridan
-# In this file I continue working on the dataset that was wrangled in exercise 4. Below is the part that I completed in exercise 4 and this week's part starts from row 55.
+# In this file I continue working on the dataset that was wrangled in exercise 4.
+# Below is the part that I completed in exercise 4 and this week's part starts from row 55.
 
 # Reading the datasets into R and naming them hd and gii
 hd <- read.csv("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human_development.csv", stringsAsFactors = F, sep = ",")
