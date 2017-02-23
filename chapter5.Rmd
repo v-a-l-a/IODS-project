@@ -1,0 +1,122 @@
+# Exercises for week 5
+
+## The Human dataset
+
+I will start off by exploring the structure and dimensions of my 'human' dataset.
+```{r human dataset}
+human <- read.table("/Users/Noora/Documents/IODS-project/data/create_human_.txt", header = TRUE)
+dim(human)
+str(human)
+```
+From the outputs I see that the dataset has 155 observation and 8 variables. However, I know that the row names denote the variable 'Country', thus the dataset has in reality 9 variables, not 8. For example the last row of my dataset is:
+```{r last row human}
+library(knitr)
+knitr::kable(tail(human, n = 1))
+```
+
+Here I have 8 named columns, but the first column shows the name of the country in question (in this case Niger), so in effect there are 9 variables.
+
+The original 'human' dataset includes variables that relate to the Human Development Index (HDI), and to other indexes such as Gender Development Index (GDI), and combines indicators from most countries. The dataset originally consisted of more than the 9 variables shown in my dataset, but it has been  wrangled and reduced to 9 variables, and to only obsrvations that relate to countries, and it includes only those observations without missing values. The variable 'Country' is the name of the country in question. The other 8 variables in my dataset relate to two topics: Health and knowledge, and Empowerment. The variables related to Empowerment in my dataset are:
+
++ **High_educ_f_m**: Proportion of females with at least secondary education / Proportion of males with at least secondary education
++ **F_m_working**: Proportion of females in the labour force / Proportion of males in the labour force
++ **Parl_seats**: Percetange of female representatives in parliament
+
+The variables related to Health and knowledge in my dataset are:
+
++ **Educ_exp**: Expected years of schooling
++ **Life_exp**: Life expectancy at birth
++ **GNI_**: Gross National Income per capita
++ **Mat_deaths**: Maternal mortality ratio
++ **Young_births**: Adolescent birth rate
+
+The source for the definitions of the variables is [this website](https://raw.githubusercontent.com/TuomoNieminen/Helsinki-Open-Data-Science/master/datasets/human_meta.txt).
+
+## Overview of the data
+
+Here is a graphical overview of the data:
+``` {r graphical human}
+library(ggplot2)
+library(GGally)
+GraphOV <- ggpairs(human, mapping = aes(), title = "Graphical Overview", lower = list(combo = wrap("facethist", bins = 20)))
+GraphOV
+```
+
+Here are also summaries of the variables in my dataset (the knitr part of the code just formats the result into a nice table):
+``` {r human summaries}
+knitr::kable(summary(human))
+```
+
+From the summary table I see immediately that many of the variables have fairly large ranges. For example some countries have no women at all in parliament (as the min value of Parl_seats is 0), whereas some have more women in parliament than men (as the max value is above 50%). This already suggests to me that some countries in the dataset are quite different from each other. Similarly there seems to be large differences between some countries with regard to all the other variables. For example in some countries the expected years of schooling are under 6 and in others above 20. At the same time, expected years of schooling seems to be among those variables where many countries also are fairly similar, with 50% of countries expecting inhabitants to have between 11 and 15 years of schooling. This variable is also the one that seems to be the closest to being normally distributd from all the variables when looking at the graphical overview.
+
+The graphical overview indicates that some of the variables may be related to one another. For example it seems that as adolescent birth rate increase, so does maternal mortality ratio. Not surprisingly, there also seems to be a relationship between maternal mortality ratio and life expectancy, with higher maternal mortality ratios corresponding to lower lif expectancies. In fact, a great number of the variables seem to be correlated. Another example of such variables are education and life expectancies: the higher the education expectancy, the higher also the life expectancy and vice versa. Among those variable pairs that don't seem to be strongly correlated are e.g. expected years of schooling and percetange of female representatives in parliament.
+
+## Principal component analysis (PCA)
+
+Next I will perform principal component analysis (PCA) without standardising the dataset. First I will look at the variability captured by the principal components. I will also draw a biplot displaying the observations with PC1 in coordinate x-axis and PC2 in y-axis.
+
+``` {r human not standardised}
+pca_human <- prcomp(human)
+summary(pca_human)
+biplot(pca_human, choices = 1:2, cex = c(1, 1), col = c("grey40", "deeppink2"), sub = "Plot 1: PC1 & PC2 with non standardised dataset")
+```
+
+However, I should first standardise the variables to be able to conduct analysis, so I repeat the PCA, and look at the variability and biplot of the tandardised dataset next.
+
+``` {r human standardised PCA}
+human_std <- scale(human)
+pca_human_std <- prcomp(human_std)
+summary(pca_human_std)
+biplot(pca_human_std, choices = 1:2, cex = c(1, 1), col = c("grey40", "deeppink2"), sub = "Plot 2: PC1 & PC2 with standardised dataset")
+```
+
+**When comparing the xxx.** Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions in you plots where you describe the results by using not just your variable names, but the actual phenomenons they relate to
+
+## Interpreting PC1 and PC2
+
+Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data
+
+## The tea dataset
+
+Next I move to another dataset - the tea dataset from the FactoMineR package.
+
+``` {r loading tea}
+library(FactoMineR)
+data("tea")
+str(tea)
+dim(tea)
+```
+
+The dataset seems to have 36 variables and 300 observations. The variables are e.g. age, sex, lunch and dinner, and seem to relate to tea consumption. I want to only keep some interesting variables in my analysis, so I choose to focus on variables:
+
++ frequency: '1/day', '1 to 2/week', '+2/day' and '3 to 6/week'
++ Tea: 'Earl Grey', 'green' and 'black'
++ sugar: 'sugar' and 'no sugar'
++ tea.time: 'not tea time' and 'tea time'
++ sex: 'female' (F) and 'male' (M)
+
+I will next visualise these variables from the dataset.
+
+``` {r plot tea}
+library(tidyr)
+library(dplyr)
+keep_columns <- c("frequency", "Tea", "sugar", "tea.time", "sex")
+te1 <- select(tea, one_of(keep_columns))
+gather(te1) %>% ggplot(aes(value)) + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) + facet_wrap("key", scales = "free")
+```
+
+## Multiple correspondence analysis and the tea data
+
+Next I will perform MCA on the variables of the tea dataset that I kept for analysis.
+
+``` {r mca tea}
+mca_tea <- MCA(te1, graph = FALSE)
+summary(mca_tea)
+```
+
+**Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots**
+
+
+``` {r visualisation mca tea}
+plot(mca_tea, invisible = c("ind"), habillage = "quali")
+```
