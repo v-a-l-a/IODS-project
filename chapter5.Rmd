@@ -67,14 +67,16 @@ However, I should first standardise the variables to be able to conduct analysis
 human_std <- scale(human)
 pca_human_std <- prcomp(human_std)
 summary(pca_human_std)
-biplot(pca_human_std, choices = 1:2, cex = c(1, 1), col = c("grey40", "deeppink2"), sub = "Plot 2: PC1 & PC2 with standardised dataset")
+biplot(pca_human_std, choices = 1:2, cex = c(1, 1), col = c(1, 14), sub = "Plot 2: PC1 & PC2 with standardised dataset")
 ```
 
-**When comparing the xxx.** Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions in you plots where you describe the results by using not just your variable names, but the actual phenomenons they relate to
+The results with and without standardising are very different. When the dataset is not standardised, PC1 explains nearly all of the variance (99.99%) in the original variables, thus PC2 contribute very little and the other PCs not at all toward explaining the variance. From plot 1 I can also see that there is only one very visible arrow ('GNI_'), which is parallel to x-axis, meaning that GNI has high correlation with PC1. The reason why GNI is so dominant is because in the non standardised dataset GNI has much higher values than any of the other variables, which is why standardisation of the dataset is needed.GNI also has clearly the largest standard deviation in this model.
+
+With standardising, PC1 still explains most of the variance in the original variables, with its proportion of variance being 54%. All 8 PCs are needed to get explain all of the variance in the original variables. In plot 2 I see all the variables mapped out clearly, with none of the variables having noticably greater standard deviation than the others.The arrows point to different directions, with some variables being correlated with PC1 whilst others with PC2 (see section below). In the second plot countries are also more evenly distributed in the scatter plot, whereas in picture 1 they were mainly scattered to the top right cornr of the plot.
 
 ## Interpreting PC1 and PC2
 
-Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data
+My personal interpretation of the first two principal component dimensions (PC1 and PC2) based on the biplot of the standardised dataset is that PC1 relates (mainly) to the topic 'Health and knowledge' and PC2 relates to the topic 'Empowerment'. The two 'Empowerment' related variables 'F_m_working' and 'Parl_seats' are fairly well parallel with the y-axis (have high correlation with PC2), whereas all the other variables are somewhat parallel with the x-axis (have high correlation with PC1). However, some of the variables seem to be positively related to PC1 and some negatively. 'Mat_deaths' and 'Young_births' arrows point to the right, whereas the education-related variables ('Educ_exp', 'High_educ_f_m'), 'GNI_' and 'Life_exp' point to the opposite direction. It is not surprising that for example life expectancy and maternal mortality ratio arrows point to the opposite directions (high negative correlation), as high maternal mortality clearly must negatively relate to life expectancy. The 'Health and knowledge' and 'Empowerment' related variables (with the exception of 'High_educ_f_m') are (almost) orthogonal, meaning that they are uncorrelated with each other.
 
 ## The tea dataset
 
@@ -114,9 +116,10 @@ mca_tea <- MCA(te1, graph = FALSE)
 summary(mca_tea)
 ```
 
-**Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots**
-
+From the Eigenvalues I see that the first dimensions retains 20% of the total variances, whilst the second one retains 15%. The differences of how much variance the 8 dimensions retain are fairly small (e.g. dimensions 4 retains 12.6% and dimensions 5 11.8%). The categories section shows the v-test results for the dimensions. Most of v-test values are above 1.96 or below -1.96, suggesting that the coorsidinates are significantly different from 0, the only exception being the frequency-variable's values. None of the variables seem to be strongly linked with a specific dimension (squared correlation between the variables and dimensions is not very close to 1), with perhaps the type of tea (especially Earl Grey) and dimension 2 being the most strongly linked.
 
 ``` {r visualisation mca tea}
-plot(mca_tea, invisible = c("ind"), habillage = "quali")
+plot(mca_tea, invisible = c("ind"), habillage = "quali", sub = "Plot 3: MCA of tea dataset")
 ```
+
+The MCA biplot shows how similar the variables are with each other. It seems that 'tea time' and 'female' are very similar, and 'not tea time' and 'male'. The type of tea most similar with 'sugar' is 'Earl Grey' whereas 'black' is most similar with 'no sugar'. It also seems that 'green' is quite different from the other variables (maybe most similar to it is 'black'). Frequent consumption '+2 / day' is more similar to 'female' and 'no sugar' than to 'male' and 'sugar' whereas less frequent uses (e.g. '1 to 2 / week') are more similar with 'male' and 'sugar'. Both 'male' and 'female' are approximately as far from 'no sugar' and 'sugar'.
