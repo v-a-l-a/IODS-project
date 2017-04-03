@@ -43,10 +43,22 @@ Let's next investigate some plots about the variables.
 **Study time**
 ```{r plot study time}
 library(ggplot2)
-ba1 <- ggplot(student_alc, aes(x = studytime, col = high_use))
-ba1 + geom_bar(position = "dodge") + ggtitle("Study time")
-bo1 <- ggplot(student_alc, aes(x = high_use, y = studytime, col = high_use))
-bo1 + geom_boxplot() + ggtitle("Study time")
+library(lattice)
+library(gridExtra)
+ba1 <- ggplot(student_alc, aes(x = studytime, fill = high_use))
+Stb <- ba1 + geom_bar(position = "dodge") + scale_fill_brewer(palette = "YlOrRd", guide = F)
+St2 <- ba1 + geom_bar(position = "fill") + scale_fill_brewer(palette = "YlOrRd") + theme(legend.position = "bottom")
+bo1 <- ggplot(student_alc, aes(x = high_use, y = studytime, fill = high_use))
+Stx <- bo1 + geom_boxplot() + scale_fill_brewer(palette = "YlOrRd", guide = F)
+
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+plotlegend<-g_legend(St2)
+grid.arrange(Stb, St2 + theme(legend.position = "none"), Stx, nrow = 2, plotlegend)
 ```
 
 It is clear from the bar plot that although approximately the same number of students without high use have study time 1 and 3, for those with high use, the number of students with study time 1 is much greater than those with 3. Also, there are over two times more students without high use whose study time is 2 than there are those with study time 1. For students with high use, the difference is much smaller. Thus it could be assumed that my hypothesis that students with high alcohol consumption spend less time studying than those without high use seems to be supported. The box plot also supports this view.
